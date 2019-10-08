@@ -57,12 +57,16 @@ def main():
     model = nn.DataParallel(model, device_ids=gpus).cuda()
 
     # load model
-    state_dict = torch.load(args.model_file)
-    if 'state_dict' in state_dict.keys():
-        state_dict = state_dict['state_dict']
-        model.load_state_dict(state_dict)
-    else:
-        model.module.load_state_dict(state_dict)
+    #state_dict = torch.load(args.model_file)
+    #if 'state_dict' in state_dict.keys():
+    #    state_dict = state_dict['state_dict']
+    #    model.load_state_dict(state_dict)
+    #else:
+    #    model.module.load_state_dict(state_dict)
+    
+    model=torch.load(args.model_file)
+    model.eval()
+    model = nn.DataParallel(model, device_ids=gpus).cuda()
 
     dataset_type = get_dataset(config)
 
@@ -77,6 +81,13 @@ def main():
 
     nme, predictions = function.inference(config, test_loader, model)
 
+    import cv2
+    img = cv2.imread('data/wflw/images/my3.jpg')
+    print(predictions,predictions.shape)
+    for item in predictions[0]:
+        cv2.circle(img, (item[0],item[1]), 3, (0, 0, 255), -1)
+    cv2.imwrite('out.png',img)
+    
     torch.save(predictions, os.path.join(final_output_dir, 'predictions.pth'))
 
 
